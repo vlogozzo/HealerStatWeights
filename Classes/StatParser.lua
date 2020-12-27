@@ -97,13 +97,14 @@ function addon:UpdatePlayerStats()
 	local haste_multiplier = 1
 	if
 		(addon.BuffTracker:Get(addon.BloodlustId) > 0 or addon.BuffTracker:Get(addon.HeroismId) > 0 or
-			addon.BuffTracker:Get(addon.TimewarpId) > 0 or addon.BuffTracker:Get(addon.PrimalRageId) > 0)
+			addon.BuffTracker:Get(addon.TimewarpId) > 0 or
+			addon.BuffTracker:Get(addon.PrimalRageId) > 0)
 	 then
 		haste_multiplier = haste_multiplier * 1.30
-	 elseif addon.BuffTracker:Get(addon.DrumsofDeathlyFerocityId) > 0 then
+	elseif addon.BuffTracker:Get(addon.DrumsofDeathlyFerocityId) > 0 then
 		haste_multiplier = haste_multiplier * 1.15
 	end
-	
+
 	if (addon.BuffTracker:Get(addon.BerserkingId) > 0) then
 		haste_multiplier = haste_multiplier * 1.15
 	end
@@ -368,11 +369,11 @@ function StatParser:Allocate(ev, spellInfo, heal, overhealing, destUnit, f, SP, 
 		_L = _Leech(ev, spellInfo, heal, destUnit, L, f)
 	end
 
-	if ( cur_seg ) then
-		cur_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID);
+	if (cur_seg) then
+		cur_seg:AllocateHeal(_I, _C, _Hhpm, _Hhpct, _V, _M, _L, spellInfo.spellID)
 	end
-	if ( ttl_seg ) then
-		ttl_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID);
+	if (ttl_seg) then
+		ttl_seg:AllocateHeal(_I, _C, _Hhpm, _Hhpct, _V, _M, _L, spellInfo.spellID)
 	end
 	--update display to user
 	addon:UpdateDisplayStats()
