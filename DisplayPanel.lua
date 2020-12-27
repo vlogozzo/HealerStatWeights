@@ -100,12 +100,12 @@ function addon:GetStatsForDisplay()
     local segment = self.SegmentManager:Get(self.currentSegment);
 
     if ( not segment ) then
-        return 1,-1,0,0,0,0;
+        return 1,0,0,0,0,0;
     end
     
     local t = segment.t;
     if ( t.int == 0 ) then
-       return 1,0,-1,0,0,0;
+       return 1,0,0,0,0,0;
     end
 
     local usingHPCT = not self.hsw.db.global.useHPMoverHPCT;
