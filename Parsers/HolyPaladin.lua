@@ -225,10 +225,6 @@ local function _HealEvent(ev,spellInfo,heal,overhealing,destUnit,f)
 			numBeacons = math.max(numBeacons - 1,0);
 		end
 		
-		--Pass azerite augmented scalar to beacon healing
-		local event = copy(spellInfo);
-		event.intScalar = addon.AzeriteAugmentations:GetAugmentationFactor(spellInfo.spellID,destUnit,ev);
-		
 		if ( spellInfo.spellID == addon.Paladin.FlashOfLight and addon.BuffTracker:Get(addon.Paladin.InfusionOfLight) > 0 ) then
 			event.infusion = true;
 			_AllocateInfusionAddedHealing(heal);

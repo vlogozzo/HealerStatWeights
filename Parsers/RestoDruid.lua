@@ -36,14 +36,13 @@ local hots = { --spells that count towards druid mastery stacks
 	[addon.Druid.Rejuvenation]=true,
 	[addon.Druid.Germination]=true,
 	[addon.Druid.LifebloomHoT]=true,
+	[addon.Druid.DoubleLifebloomHoT]=true,
 	[addon.Druid.Regrowth]=true, --regrowth
 	[addon.Druid.WildGrowth]=true,
 	[addon.Druid.SpringBlossoms]=true,
 	[addon.Druid.Cultivation]=true,
 	[addon.Druid.CenarionWard]=true,
-	[addon.Druid.DreamerHoT]=true,
-	[addon.Druid.FrenziedRegen]=true,
-	[addon.Druid.GroveTending]=true
+	[addon.Druid.FrenziedRegen]=true
 }
 
 function addon.Druid:IsHOT(spellID)
@@ -72,12 +71,26 @@ end
 		- modified by abundance on regrowth
 ------------------------------------------------------------------------------]]
 local function _CriticalStrike(ev,spellInfo,heal,destUnit,C,CB)
-	
+
 	if ( spellInfo.spellID == addon.Druid.Regrowth ) then
 		local abundance = addon.BuffTracker:Get(addon.Druid.AbundanceBuff);
 		C = C + (abundance * 0.06);
+
+		if ev == "SPELL_HEAL" then
+			for i=1,40,1 do
+				local _, _, _, _, _, _, source, _, _, spellId = UnitBuff(destUnit, i, "HELPFUL")
+				if spellId then
+					if spellId == addon.Druid.Regrowth and source == "player" then
+						C = C + 0.4 --40% crit chance on targets already effected with regrowth
+						break;
+					end
+				else
+					break;
+				end
+			end
+		end
 	end
-	
+
 	return addon.BaseParsers.CriticalStrike(ev,spellInfo,heal,destUnit,C,CB,nil);
 end
 
@@ -93,7 +106,7 @@ local function _Mastery(ev,spellInfo,heal,destUnit,M)
 	if ( spellInfo.mst ) then --spell is affected by mastery, get the hotCount on target.		
 		local count = hotCount(destUnit);
 		
-		if ( spellInfo.spellID == addon.Druid.FrenziedRegen and not IsEquippedItem(DruidArtifactWeaponID) ) then --FR isnt affected by itself when not using artifact weapon https://imgur.com/SmHa1bw
+		if ( spellInfo.spellID == addon.Druid.FrenziedRegen ) then --FR isnt affected by itself when not using artifact weapon https://imgur.com/SmHa1bw
 			count = math.max(0,count-1);
 		end
 		

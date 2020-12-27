@@ -63,26 +63,6 @@ function addon:UpdateDisplayLabels()
     local vers_suffix = self.hsw.db.global.useVersDR and vers_dr or "";
     local mastery_suffix = "";
 
-    if ( self.hsw.db.global.includeCorruption and addon.critMult and addon.hasteMult and addon.versMult and addon.masteryMult ) then 
-        
-        if ( addon.critMult > 1 ) then
-            crit_suffix = crit_suffix .. " (+" .. tostring((addon.critMult-1)*100) .. "%)";
-        end
-
-        if ( addon.hasteMult > 1 ) then
-            haste_suffix = haste_suffix .. " (+" .. tostring((addon.hasteMult-1)*100) .. "%)";
-        end
-        
-        if ( addon.versMult > 1 ) then
-            vers_suffix = vers_suffix .. " (+" .. tostring((addon.versMult-1)*100) .. "%)";
-        end
-        
-        if ( addon.masteryMult > 1 ) then
-            mastery_suffix = mastery_suffix .. " (+" .. tostring((addon.masteryMult-1)*100) .. "%)";
-        end
-    end
-
-
     self.frame.textL:SetFormattedText(
         pattern_left, crit_suffix, haste_suffix, vers_suffix, mastery_suffix
     );
@@ -118,14 +98,14 @@ end
 ------------------------------------------------------------------------------]]
 function addon:GetStatsForDisplay()
     local segment = self.SegmentManager:Get(self.currentSegment);
-    
+
     if ( not segment ) then
-        return 1,0,0,0,0,0;
+        return 1,-1,0,0,0,0;
     end
     
-    local t = segment.t;    
+    local t = segment.t;
     if ( t.int == 0 ) then
-        return 1,0,0,0,0,0;
+       return 1,0,-1,0,0,0;
     end
 
     local usingHPCT = not self.hsw.db.global.useHPMoverHPCT;
@@ -212,7 +192,7 @@ end
 --[[----------------------------------------------------------------------------
     Enabled - Check if the addon should be enabled.
 ------------------------------------------------------------------------------]]
-local minLevel = 110;
+local minLevel = 60;
 function addon:Enabled()
     if ( self.StatParser:IsCurrentSpecSupported() ) then
 		if ( HSW_ENABLE_FOR_TESTING ) then
@@ -417,9 +397,7 @@ StaticPopupDialogs[clearsegments_dialog_name] = {
 function addon:StartFight(id)
     if ( self:Enabled() ) then
         if ( not self.inCombat ) then
-            self:UpdateCorruptionMultipliers();
             self:UpdatePlayerStats();
-			self:UpdateAzeriteEquipment();
             self.UnitManager:Cache();
 			if ( self:IsHolyPaladin() ) then
 				self:CountBeaconsAtStartOfFight();
@@ -436,7 +414,7 @@ function addon:StartFight(id)
             --Set start time of total segment to match current segment
             local cur_seg = self.SegmentManager:Get(0);
             local ttl_seg = self.SegmentManager:Get("Total");            
-            if ( ttl_seg and cur_seg ) then    
+            if ( ttl_seg and cur_seg ) then
                 ttl_seg.startTime = cur_seg.startTime;
             end
             

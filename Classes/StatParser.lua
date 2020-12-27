@@ -1,355 +1,240 @@
-local name, addon = ...;
-
-
+local name, addon = ...
 
 --[[----------------------------------------------------------------------------
 	Stat conversion factors (data taken from simc)
 	https://github.com/simulationcraft/simc/blob/bfa-dev/engine/dbc/generated/sc_scale_data.inc
 ------------------------------------------------------------------------------]]
 local hst_cnv = {
-																	16.64378375,	
-    19.0820391,		21.87749023,	25.08246504,	28.7569573,		32.96974967,	
-    37.79970119,	43.33722349,	49.6859732,		56.96479225,	68	 
-};
-	
+	18.22129252,
+	20.11723583,
+	22.21045389,
+	24.52147334,
+	33.00000009
+}
+
 local crt_cnv = {
-																	17.62282985,  
-    20.20451199,	23.16440142,	26.55790416,	30.44854303,	34.90914671,	
-    40.02321302,	45.88647194,	52.60867751,	60.31566238,	72
-};
+	19.32561328,
+	21.33646224,
+	23.55654201,
+	26.00762324,
+	35.00000009
+}
 
 local mst_cnv = {
-																	17.62282985, 
-    20.20451199,	23.16440142,	26.55790416,	30.44854303,	34.90914671,	
-    40.02321302,	45.88647194,	52.60867751,	60.31566238,	72
-};
+	19.32561328,
+	21.33646224,
+	23.55654201,
+	26.00762324,
+	35.00000009
+}
 
 local vrs_cnv = {
-																	20.80472968, 
-    23.85254888,	27.34686278,	31.35308129,	35.94619663,	41.21218708,
-    47.24962648,	54.17152937,	62.1074665,		71.20599031,	85
-};
+	22.08641518,
+	24.38452828,
+	26.92176229,
+	29.72299799,
+	40.0000001
+}
 
 local lee_cnv = {
-																	9.790461028,
-    11.22472888,	12.8691119,		14.7543912,		16.91585724,	19.39397039,
-    22.23511835,	25.49248441,	29.22704306,	33.50870132,	40
-};
+	11.59536797,
+	12.80187735,
+	14.1339252,
+	15.60457394,
+	21.00000006
+}
 
 local mna_cnv = {
-									4000,
-    6351,	7270,	8253,	9307,	10437,	
-    11650,	12949,	14341,	15774,	20000
-};
-
-local corruptions = {
-    ["6474"] = {"haste", "0.06"},
-    ["6475"] = {"haste", "0.09"},
-    ["6476"] = {"haste", "0.12"},
-    ["6471"] = {"mastery", "0.06"},
-    ["6472"] = {"mastery", "0.09"},
-    ["6473"] = {"mastery", "0.12"},
-    ["6480"] = {"crit", "0.06"},
-    ["6481"] = {"crit", "0.09"},
-    ["6482"] = {"crit", "0.12"},
-    ["6477"] = {"vers", "0.06"},
-    ["6478"] = {"vers", "0.09"},
-    ["6479"] = {"vers", "0.12"},
-    ["6437"] = {"critBonus", "0.02"},
-    ["6438"] = {"critBonus", "0.03"},
-    ["6439"] = {"critBonus", "0.04"}
+	5253,
+	6170,
+	7247,
+	8513,
+	10000
 }
 
 function addon:SetupConversionFactors()
-	addon.IntConv		= 1.05; --int to SP conversion factor
-	
-	local mastery_factor = 1;
-	
-	if ( self:IsRestoDruid() ) then
-		mastery_factor = 20/11;
-	elseif ( self:IsRestoShaman() ) then
-		mastery_factor = 1/3;
-	elseif ( self:IsHolyPriest() ) then
-		mastery_factor = 4/5;
-	elseif ( self:IsHolyPaladin() ) then
-		mastery_factor = 2/3;
-	elseif ( self:IsMistweaverMonk() ) then
-		mastery_factor = 1/3;
-	elseif ( self:IsDiscPriest() ) then
-		mastery_factor = 5/6;
-	end
-	
-	local level = UnitLevel("Player");
-	level = math.max(level,110);
-	addon.CritConv 		= crt_cnv[level-110+1]*100;
-	addon.HasteConv 	= hst_cnv[level-110+1]*100;
-	addon.VersConv 		= vrs_cnv[level-110+1]*100;
-	addon.MasteryConv 	= mst_cnv[level-110+1]*100 * mastery_factor;
-	addon.LeechConv		= lee_cnv[level-110+1]*100;
-	addon.ManaPool 		= mna_cnv[level-110+1]*5;
-end
+	addon.IntConv = 1.05 --int to SP conversion factor
 
+	local mastery_factor = 1
 
-
---[[----------------------------------------------------------------------------
-	SetupConversionFactorsForCorruption - overwrite the existing conversion factors
-------------------------------------------------------------------------------]]
-function addon:SetupConversionFactorsForCorruption() 
-	if ( self.hsw.db.global.includeCorruption ) then
-		self:SetupConversionFactors();
-		addon.CritConv = addon.CritConv / addon.critMult;
-		addon.HasteConv = addon.HasteConv / addon.hasteMult;
-		addon.VersConv = addon.VersConv / addon.versMult;
-		addon.MasteryConv = addon.MasteryConv / addon.masteryMult;
-	end
-end
-
-
-
---[[----------------------------------------------------------------------------
-	UpdatePlayerEquipment - Cache information on players azerite traits
-------------------------------------------------------------------------------]]
-function addon:UpdateAzeriteEquipment()
-	local slots = {1,3,5};
-	local budgets = {1,0.75,1};
-	
-	self.AzeriteAugmentations:ClearActiveTraits()
-	for k,slot in pairs(slots) do
-		local inventoryLink = GetInventoryItemLink("player",slot);
-		local location = ItemLocation:CreateFromEquipmentSlot(slot);
-		if ( location and inventoryLink ) then
-
-			local stats=GetItemStats(inventoryLink); 
-			local itemInt = stats and stats["ITEM_MOD_INTELLECT_SHORT"] or 0;
-			itemInt = itemInt / budgets[k];
-			
-			local azeriteItemDataSource = AzeriteEmpoweredItemDataSource:CreateFromItemLocation(location);
-			if ( itemInt and azeriteItemDataSource and C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItem(location) ) then
-				for i=1,5,1 do --5 rings now. 
-					local trait = AzeriteUtil.GetSelectedAzeritePowerInTier(azeriteItemDataSource,i);
-					if ( trait ) then
-						self.AzeriteAugmentations:SetActiveTrait(trait,itemInt);
-					end
-					--print(i,trait);
-				end
-			end
-		end
-	end
-end
-
-
---[[----------------------------------------------------------------------------
-	UpdateCorruptionMultipliers - Cache information on players corruption
-------------------------------------------------------------------------------]]
-function addon:UpdateCorruptionMultipliers()
-	addon.hasteMult=1;
-	addon.critMult=1;
-	addon.versMult=1;
-	addon.masteryMult=1;
-	addon.critBonus=0;
-	
-	if not addon.hsw.db.global.includeCorruption then
-		return;
-	end
-	
-	for i = 1,18,1 do
-		local itemLink = GetInventoryItemLink("player", i);
-		if itemLink then
-			if IsCorruptedItem(itemLink) then
-				local itemString = string.match(itemLink, "item:([%-?%d:]+)");
-				local itemSplit = {};
-				for _, v in ipairs({strsplit(":", itemString)}) do
-					if v == "" then
-						itemSplit[#itemSplit + 1] = 0;
-					else
-						itemSplit[#itemSplit + 1] = tonumber(v);
-					end
-				end
-				for _, id in pairs(itemSplit) do
-					if id > 0 then
-						local idstring = tostring(id);
-						local tablevalues = corruptions[idstring];
-						if tablevalues then
-							if tablevalues[1]=="haste" then
-								addon.hasteMult=tablevalues[2]+addon.hasteMult;
-							elseif tablevalues[1]=="crit" then
-								addon.critMult=tablevalues[2]+addon.critMult;
-							elseif tablevalues[1]=="vers" then
-								addon.versMult=tablevalues[2]+addon.versMult;
-							elseif tablevalues[1]=="mastery" then
-								addon.masteryMult=tablevalues[2]+addon.masteryMult;
-							elseif tablevalues[1]=="critBonus" then
-								addon.critBonus=tablevalues[2]+addon.critBonus;
-							end
-						end
-					end
-				end
-			end
-		end
+	if (self:IsRestoDruid()) then
+		mastery_factor = 20 / 11
+	elseif (self:IsRestoShaman()) then
+		mastery_factor = 1 / 3
+	elseif (self:IsHolyPriest()) then
+		mastery_factor = 4 / 5
+	elseif (self:IsHolyPaladin()) then
+		mastery_factor = 2 / 3
+	elseif (self:IsMistweaverMonk()) then
+		mastery_factor = 1 / 3
+	elseif (self:IsDiscPriest()) then
+		mastery_factor = 5 / 6
 	end
 
-	--update conv factors.
-
-	self:UpdateDisplayLabels(); --force our displayPanel to update with proper labels on left hand side.
-	self:SetupConversionFactorsForCorruption();
+	local level = UnitLevel("Player")
+	level = math.max(level, 56)
+	addon.CritConv = crt_cnv[level - 56 + 1] * 100
+	addon.HasteConv = hst_cnv[level - 56 + 1] * 100
+	addon.VersConv = vrs_cnv[level - 56 + 1] * 100
+	addon.MasteryConv = mst_cnv[level - 56 + 1] * 100 * mastery_factor
+	addon.LeechConv = lee_cnv[level - 56 + 1] * 100
+	addon.ManaPool = mna_cnv[level - 56 + 1] * 5
 end
 
 --[[----------------------------------------------------------------------------
 	UpdatePlayerStats - Update stats for current player.
 ------------------------------------------------------------------------------]]
 function addon:UpdatePlayerStats()
-	self.ply_sp  = GetSpellBonusDamage(4);
-    self.ply_crt = GetCritChance() / 100;
-	self.ply_hst = UnitSpellHaste("Player") / 100;
-	self.ply_vrs = (GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)) / 100;
-	self.ply_mst = GetMasteryEffect() / 100;
-	self.ply_lee = GetLifesteal() / 100;
-    
+	self.ply_sp = GetSpellBonusDamage(4)
+	self.ply_crt = GetCritChance() / 100
+	self.ply_hst = UnitSpellHaste("Player") / 100
+	self.ply_vrs =
+		(GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)) / 100
+	self.ply_mst = GetMasteryEffect() / 100
+	self.ply_lee = GetLifesteal() / 100
+
 	--Adjust for haste multiplier effects
-	local haste_multiplier = 1;
-	if ( addon.BuffTracker:Get(addon.BloodlustId)>0 or
-		 addon.BuffTracker:Get(addon.HeroismId)>0 or
-		 addon.BuffTracker:Get(addon.DrumsOfFuryId)>0 or
-		 addon.BuffTracker:Get(addon.TimewarpId)>0 or
-		 addon.BuffTracker:Get(addon.PrimalRageId)>0 ) then
-		haste_multiplier = haste_multiplier * 1.30;
+	local haste_multiplier = 1
+	if
+		(addon.BuffTracker:Get(addon.BloodlustId) > 0 or addon.BuffTracker:Get(addon.HeroismId) > 0 or
+			addon.BuffTracker:Get(addon.TimewarpId) > 0 or addon.BuffTracker:Get(addon.PrimalRageId) > 0)
+	 then
+		haste_multiplier = haste_multiplier * 1.30
+	 elseif addon.BuffTracker:Get(addon.DrumsofDeathlyFerocityId) > 0 then
+		haste_multiplier = haste_multiplier * 1.15
 	end
-	if ( addon.BuffTracker:Get(addon.BerserkingId)>0 ) then
-		haste_multiplier = haste_multiplier * 1.15;
-	end
-	if ( addon.BuffTracker:Get(addon.Paladin.HolyAvenger)>0) then
-		haste_multiplier = haste_multiplier * 1.30;
-	end
-	if ( addon.BuffTracker:Get(addon.Essence.EverRisingTideRank3)>0) then
-		haste_multiplier = haste_multiplier * 1.10;
-	end
-	self.ply_hst = math.max((1+self.ply_hst) / haste_multiplier - 1,0);
 	
+	if (addon.BuffTracker:Get(addon.BerserkingId) > 0) then
+		haste_multiplier = haste_multiplier * 1.15
+	end
+	if (addon.BuffTracker:Get(addon.Paladin.HolyAvenger) > 0) then
+		haste_multiplier = haste_multiplier * 1.30
+	end
+	self.ply_hst = math.max((1 + self.ply_hst) / haste_multiplier - 1, 0)
+
 	--adjust for intellect multiplier effects
-	if ( addon.BuffTracker:Get(addon.ArcaneIntellectId)>0 ) then
-		self.IntConv = 1.05*1.1;
-	elseif ( addon.BuffTracker:Get(addon.ScrollOfIntellectId)>0 ) then
-		self.IntConv = 1.05*1.07;
+	if (addon.BuffTracker:Get(addon.ArcaneIntellectId) > 0) then
+		self.IntConv = 1.05 * 1.1
 	else
-		self.IntConv = 1.05;
+		self.IntConv = 1.05
 	end
-	
+
+	if (addon.BuffTracker:Get(addon.CelestialGuidance) > 0) then
+		self.IntConv = self.IntConv * 1.05
+	end
+
 	--Adjust for crit bonus effects
-	local race = UnitRace("Player");
-	self.ply_crtbonus = 1;
-	if ( race == "Tauren") then
-		self.ply_crtbonus = self.ply_crtbonus * 1.04; --yes 1.04, not 1.02
-    end
-	if ( IsEquippedItem("Drape of Shame") ) then 
-		self.ply_crtbonus = self.ply_crtbonus * 1.05;
-    end
-	if ( addon.critBonus ) then
-		self.ply_crtbonus = self.ply_crtbonus * (1+addon.critBonus);
+	local race = UnitRace("Player")
+	self.ply_crtbonus = 1
+	if (race == "Tauren") then
+		self.ply_crtbonus = self.ply_crtbonus * 1.04 --yes 1.04, not 1.02
+	end
+	if (addon.critBonus) then
+		self.ply_crtbonus = self.ply_crtbonus * (1 + addon.critBonus)
 	end
 end
-
 
 --[[----------------------------------------------------------------------------
 Basic Stat Derivative Calculations
 ------------------------------------------------------------------------------]]
 --Int
-local function _Intellect(ev,s,heal,destUnit,SP,f)
-	if ( f and f.Intellect ) then
-		return f.Intellect(ev,s,heal,destUnit,SP);
+local function _Intellect(ev, s, heal, destUnit, SP, f)
+	if (f and f.Intellect) then
+		return f.Intellect(ev, s, heal, destUnit, SP)
 	end
-	
-	if ( s.int ) then
-		return (heal / SP) * addon.IntConv;
+
+	if (s.int) then
+		return (heal / SP) * addon.IntConv
 	end
-	
-	return 0;
+
+	return 0
 end
 
 --Crit
 --CB is a bonus to critical strike healing (Drape of Shame, Tauren Racial, etc)
-local function _CriticalStrike(ev,s,heal,destUnit,C,CB,f)
-	if ( f and f.CriticalStrike ) then
-		return f.CriticalStrike(ev,s,heal,destUnit,C,CB);
+local function _CriticalStrike(ev, s, heal, destUnit, C, CB, f)
+	if (f and f.CriticalStrike) then
+		return f.CriticalStrike(ev, s, heal, destUnit, C, CB)
 	end
-	
-	C = math.min(C,1.00); --clamp crit chance at 100%
-	
-	if ( s.crt ) then
-		return heal*CB / (1+C*CB) / addon.CritConv;
+
+	C = math.min(C, 1.00) --caps crit chance at 100%
+
+	if (s.crt) then
+		return heal * CB / (1 + C * CB) / addon.CritConv
 	end
-	
-	return 0;
+
+	return 0
 end
 
 --Haste (returns hpm and hpct values)
-local function _Haste(ev,s,heal,destUnit,H,f)
-	if ( f and f.Haste ) then
-		return f.Haste(ev,s,heal,destUnit,H);
+local function _Haste(ev, s, heal, destUnit, H, f)
+	if (f and f.Haste) then
+		return f.Haste(ev, s, heal, destUnit, H)
 	end
 	if not H then
-		return 0;
+		return 0
 	end
-	local canHPM = s.hstHPM or (s.hstHPMPeriodic and ev == "SPELL_PERIODIC_HEAL");
-	local canHPCT2 = canHPM and s.hstHPCT;
-	local canHPCT1 = canHPM or s.hstHPCT;
-	
-	local hpm = 0;
-	local hpct = 0;
-	
-	if ( canHPM ) then
-		hpm = heal / (1+H) / addon.HasteConv;
-	end
-	
-	if (canHPCT2) then
-		hpct = 2*heal / (1+H) / addon.HasteConv;
-	elseif (canHPCT1) then
-		hpct = heal / (1+H) / addon.HasteConv;
-	end
-	
-	if ( s.hstHPMequalsHPCT ) then
-		hpm = hpct;
+	local canHPM = s.hstHPM or (s.hstHPMPeriodic and ev == "SPELL_PERIODIC_HEAL")
+	local canHPCT2 = canHPM and s.hstHPCT
+	local canHPCT1 = canHPM or s.hstHPCT
+
+	local hpm = 0
+	local hpct = 0
+
+	if (canHPM) then
+		hpm = heal / (1 + H) / addon.HasteConv
 	end
 
-	return hpm,hpct;
+	if (canHPCT2) then
+		hpct = 2 * heal / (1 + H) / addon.HasteConv
+	elseif (canHPCT1) then
+		hpct = heal / (1 + H) / addon.HasteConv
+	end
+
+	if (s.hstHPMequalsHPCT) then
+		hpm = hpct
+	end
+
+	return hpm, hpct
 end
 
 --Vers
-local function _Versatility(ev,s,heal,destUnit,V,f)
-	if ( f and f.Versatility ) then
-		return f.Versatility(ev,s,heal,destUnit,V);
+local function _Versatility(ev, s, heal, destUnit, V, f)
+	if (f and f.Versatility) then
+		return f.Versatility(ev, s, heal, destUnit, V)
 	end
-	
-	if ( s.vrs ) then
-		return heal / (1+V) / addon.VersConv;
+
+	if (s.vrs) then
+		return heal / (1 + V) / addon.VersConv
 	end
-	
-	return 0;
+
+	return 0
 end
 
 --Mastery
-local function _Mastery(ev,s,heal,destUnit,M,ME,f)
-	if ( f and f.Mastery ) then
-		return f.Mastery(ev,s,heal,destUnit,M,ME)
+local function _Mastery(ev, s, heal, destUnit, M, ME, f)
+	if (f and f.Mastery) then
+		return f.Mastery(ev, s, heal, destUnit, M, ME)
 	end
-	
-	if ( s.mst ) then
-		return heal / ( 1+M ) / addon.MasteryConv; 
+
+	if (s.mst) then
+		return heal / (1 + M) / addon.MasteryConv
 	end
-	
-	return 0;
+
+	return 0
 end
 
 --Leech
-local function _Leech(ev,s,heal,destUnit,L,f)
-	if ( f and f.Leech ) then
-		return f.Leech(ev,s,heal,destUnit,L);
+local function _Leech(ev, s, heal, destUnit, L, f)
+	if (f and f.Leech) then
+		return f.Leech(ev, s, heal, destUnit, L)
 	end
-	
-	if s.lee and destUnit ~= "player" and (UnitHealth("player")+(heal*L)) < UnitHealthMax("player") then
-		return heal / (1+L) / addon.LeechConv;
+
+	if s.lee and destUnit ~= "player" and (UnitHealth("player") + (heal * L)) < UnitHealthMax("player") then
+		return heal / (1 + L) / addon.LeechConv
 	end
-	
-	return 0;
+
+	return 0
 end
 
 local BaseParsers = {
@@ -361,273 +246,270 @@ local BaseParsers = {
 	Leech = _Leech
 }
 
-
-
 --[[----------------------------------------------------------------------------
 	StatParser - Create & Get combat log parsers for each spec
 ------------------------------------------------------------------------------]]
-local StatParser = {};
-
-
+local StatParser = {}
 
 --[[----------------------------------------------------------------------------
 	Create - add a new stat parser to be used by the addon.
 ------------------------------------------------------------------------------]]
-function StatParser:Create(id,func_I,func_C,func_H,func_V,func_M,func_L,func_HealEvent,func_DamageEvent)
-	self[id] = {};
-	if ( func_HealEvent ) then self[id].HealEvent = func_HealEvent; end
-	if ( func_DamageEvent ) then self[id].DamageEvent = func_DamageEvent; end
-	if ( func_I ) then self[id].Intellect = func_I; end
-	if ( func_C ) then self[id].CriticalStrike = func_C; end
-	if ( func_H ) then self[id].Haste = func_H; end
-	if ( func_V ) then self[id].Versatility = func_V; end
-	if ( func_M ) then self[id].Mastery = func_M; end
-	if ( func_L ) then self[id].Leech = func_L; end
+function StatParser:Create(id, func_I, func_C, func_H, func_V, func_M, func_L, func_HealEvent, func_DamageEvent)
+	self[id] = {}
+	if (func_HealEvent) then
+		self[id].HealEvent = func_HealEvent
+	end
+	if (func_DamageEvent) then
+		self[id].DamageEvent = func_DamageEvent
+	end
+	if (func_I) then
+		self[id].Intellect = func_I
+	end
+	if (func_C) then
+		self[id].CriticalStrike = func_C
+	end
+	if (func_H) then
+		self[id].Haste = func_H
+	end
+	if (func_V) then
+		self[id].Versatility = func_V
+	end
+	if (func_M) then
+		self[id].Mastery = func_M
+	end
+	if (func_L) then
+		self[id].Leech = func_L
+	end
 end
-
 
 --[[----------------------------------------------------------------------------
 	GetParserForCurrentSpec
 ------------------------------------------------------------------------------]]
 function StatParser:GetParserForCurrentSpec()
-    local i = GetSpecialization();
-	local specId = GetSpecializationInfo(i);
-	return self[specId and tonumber(specId) or 0],specId;
+	local i = GetSpecialization()
+	local specId = GetSpecializationInfo(i)
+	return self[specId and tonumber(specId) or 0], specId
 end
 
 function StatParser:IncFillerHealing(heal)
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	if ( cur_seg ) then
-		cur_seg:IncFillerHealing(heal);
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+	if (cur_seg) then
+		cur_seg:IncFillerHealing(heal)
 	end
-	if ( ttl_seg ) then
-		ttl_seg:IncFillerHealing(heal);
+	if (ttl_seg) then
+		ttl_seg:IncFillerHealing(heal)
 	end
 end
 
-function StatParser:IncBucket(key,amount)
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	
-	if ( cur_seg ) then
-		cur_seg:IncBucket(key,amount);
+function StatParser:IncBucket(key, amount)
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+
+	if (cur_seg) then
+		cur_seg:IncBucket(key, amount)
 	end
-	if ( ttl_seg ) then
-		ttl_seg:IncBucket(key,amount);
+	if (ttl_seg) then
+		ttl_seg:IncBucket(key, amount)
 	end
 end
 
 function StatParser:IncChainSpellCast(spellID)
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	
-	if ( cur_seg ) then
-		cur_seg:IncChainSpellCast(spellID);
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+
+	if (cur_seg) then
+		cur_seg:IncChainSpellCast(spellID)
 	end
-	if ( ttl_seg ) then
-		ttl_seg:IncChainSpellCast(spellID);
+	if (ttl_seg) then
+		ttl_seg:IncChainSpellCast(spellID)
 	end
 end
 
-function StatParser:IncHealing(heal,updateFiller,updateTotal)
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	if ( cur_seg ) then
-		if ( updateFiller ) then
-			cur_seg:IncFillerHealing(heal);
+function StatParser:IncHealing(heal, updateFiller, updateTotal)
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+	if (cur_seg) then
+		if (updateFiller) then
+			cur_seg:IncFillerHealing(heal)
 		end
-		if ( updateTotal ) then
-			cur_seg:IncTotalHealing(heal);
+		if (updateTotal) then
+			cur_seg:IncTotalHealing(heal)
 		end
 	end
-	if ( ttl_seg ) then
-		if ( updateFiller ) then
-			ttl_seg:IncFillerHealing(heal);
+	if (ttl_seg) then
+		if (updateFiller) then
+			ttl_seg:IncFillerHealing(heal)
 		end
-		if ( updateTotal ) then
-			ttl_seg:IncTotalHealing(heal);
+		if (updateTotal) then
+			ttl_seg:IncTotalHealing(heal)
 		end
 	end
 end
 
-function StatParser:Allocate(ev,spellInfo,heal,overhealing,destUnit,f,SP,C,CB,H,V,M,ME,L,intScalar)
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	local OH = overhealing>0
-	local _I,_C,_Hhpm,_Hhpct,_M,_V,_L = 0,0,0,0,0,0,0;
+function StatParser:Allocate(ev, spellInfo, heal, overhealing, destUnit, f, SP, C, CB, H, V, M, ME, L, intScalar)
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+	local OH = overhealing > 0
+	local _I, _C, _Hhpm, _Hhpct, _M, _V, _L = 0, 0, 0, 0, 0, 0, 0
 
-	if ( HSW_ENABLE_FOR_TESTING ) then
-		addon:Msg("allocate spellid="..(spellInfo.spellID or "unknown").." destunit="..destUnit.." amount="..heal);
+	if (HSW_ENABLE_FOR_TESTING) then
+		addon:Msg("allocate spellid=" .. (spellInfo.spellID or "unknown") .. " destunit=" .. destUnit .. " amount=" .. heal)
 	end
-	
+
 	if (not OH) then --allocate effective healing
-		_I 	 			= _Intellect(ev,spellInfo,heal,destUnit,SP,f);
-		_C				= _CriticalStrike(ev,spellInfo,heal,destUnit,C,CB,f) ;
-		_Hhpm,_Hhpct	= _Haste(ev,spellInfo,heal,destUnit,H,f);
-		_M	 			= _Mastery(ev,spellInfo,heal,destUnit,M,ME,f);
-		_V	 			= _Versatility(ev,spellInfo,heal,destUnit,V,f);
-		_L	 			= _Leech(ev,spellInfo,heal,destUnit,L,f);
-	elseif ( addon.BuffTracker:Get(addon.VelensId) == 1 ) then --allow all normal healing, and 50% of overhealing to be counted
-		heal = heal+overhealing*0.5;
-		_I 	 			= _Intellect(ev,spellInfo,heal,destUnit,SP,f);
-		_C				= _CriticalStrike(ev,spellInfo,heal,destUnit,C,CB,f);
-		_Hhpm,_Hhpct	= _Haste(ev,spellInfo,heal,destUnit,H,f);
-		_M	 			= _Mastery(ev,spellInfo,heal,destUnit,M,ME,f);
-		_V	 			= _Versatility(ev,spellInfo,heal,destUnit,V,f);
-		_L	 			= _Leech(ev,spellInfo,heal,destUnit,L,f);
+		_I = _Intellect(ev, spellInfo, heal, destUnit, SP, f)
+		_C = _CriticalStrike(ev, spellInfo, heal, destUnit, C, CB, f)
+		_Hhpm, _Hhpct = _Haste(ev, spellInfo, heal, destUnit, H, f)
+		_M = _Mastery(ev, spellInfo, heal, destUnit, M, ME, f)
+		_V = _Versatility(ev, spellInfo, heal, destUnit, V, f)
+		_L = _Leech(ev, spellInfo, heal, destUnit, L, f)
 	else --overhealing with no velens buff, so only possible to attribute leech
-		_L	 			= _Leech(ev,spellInfo,heal,destUnit,L,f);
+		_L = _Leech(ev, spellInfo, heal, destUnit, L, f)
 	end
 
-	--Azerite Scaling
-	local scalar;
-	if ( not intScalar ) then
-		scalar = addon.AzeriteAugmentations:GetAugmentationFactor(spellInfo.spellID,destUnit,ev);
-	else
-		scalar = intScalar;
-	end
-	local azeritePortion = _I*(1-scalar);
-	_I = _I * scalar;
-	
-	--Add derivatives to current & total segments
 	if ( cur_seg ) then
-		cur_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID,azeritePortion);
+		cur_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID);
 	end
 	if ( ttl_seg ) then
-		ttl_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID,azeritePortion);
+		ttl_seg:AllocateHeal(_I,_C,_Hhpm,_Hhpct,_V,_M,_L,spellInfo.spellID);
 	end
-	
 	--update display to user
-	addon:UpdateDisplayStats();
+	addon:UpdateDisplayStats()
 end
 
+function StatParser:AllocateDamageLeech(ev, spellInfo, amount, L)
+	local _L = _Leech(ev, spellInfo, amount, nil, L, nil)
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
 
-function StatParser:AllocateDamageLeech(ev,spellInfo,amount,L)
-	local _L = _Leech(ev,spellInfo,amount,nil,L,nil);
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	
 	--Track healing amount of filler spells vs overall healing. (For mp5 calculations)
-	if ( cur_seg ) then
-		cur_seg:AllocateHeal(0,0,0,0,0,0,_L);
+	if (cur_seg) then
+		cur_seg:AllocateHeal(0, 0, 0, 0, 0, 0, _L)
 	end
-	if ( ttl_seg ) then
-		cur_seg:AllocateHeal(0,0,0,0,0,0,_L);
+	if (ttl_seg) then
+		cur_seg:AllocateHeal(0, 0, 0, 0, 0, 0, _L)
 	end
 end
 
 --[[----------------------------------------------------------------------------
 	DecompHealingForCurrentSpec
 ------------------------------------------------------------------------------]]
-function StatParser:DecompHealingForCurrentSpec(ev,destGUID,spellID,critFlag,heal,overhealing)
-	local f,specId = self:GetParserForCurrentSpec();
-	
+function StatParser:DecompHealingForCurrentSpec(ev, destGUID, spellID, critFlag, heal, overhealing)
+	local f, specId = self:GetParserForCurrentSpec()
+
 	--check if parser exist for current spec
-	if ( f ) then 
+	if (f) then
 		--check if spellInfo is valid for current spec.
-		local spellInfo = addon.Spells:Get(spellID);
-		if ( spellInfo and (spellInfo.spellType == specId or spellInfo.spellType == addon.SpellType.SHARED) ) then
+		local spellInfo = addon.Spells:Get(spellID)
+		if (spellInfo and (spellInfo.spellType == specId or spellInfo.spellType == addon.SpellType.SHARED)) then
 			--make sure destGUID describes a valid unit (Exclude healing to pets/npcs)
-			local destUnit = addon.UnitManager:Find(destGUID);
-			if destUnit then 
-				
+			local destUnit = addon.UnitManager:Find(destGUID)
+			if destUnit then
 				--Reduce crit heals down to the non-crit amount
-				local OH = overhealing and overhealing>0;
-				local orig_heal = heal;
-				if ( critFlag ) then
-					heal = heal / ( 1 + addon.ply_crtbonus );
-					overhealing = OH and overhealing / ( 1 + addon.ply_crtbonus ) or 0;
+				local OH = overhealing and overhealing > 0
+				local orig_heal = heal
+				if (critFlag) then
+					heal = heal / (1 + addon.ply_crtbonus)
+					overhealing = OH and overhealing / (1 + addon.ply_crtbonus) or 0
 				end
-				
+
 				--Allow the class parser to do pre-computations on this heal event
-				local skipAllocate=false;
-				if ( f.HealEvent ) then
-					skipAllocate = f.HealEvent(ev,spellInfo,heal,overhealing,destUnit,f,orig_heal);
+				local skipAllocate = false
+				if (f.HealEvent) then
+					skipAllocate = f.HealEvent(ev, spellInfo, heal, overhealing, destUnit, f, orig_heal)
 				end
-				
+
 				--filter out raid cooldowns if we are excluding them
-				if ( addon.hsw.db.global.excludeRaidHealingCooldowns and spellInfo.cd ) then
-					return;
+				if (addon.hsw.db.global.excludeRaidHealingCooldowns and spellInfo.cd) then
+					return
 				end
-				
+
 				--Track healing amount of filler spells vs overall healing. (For mp5 calculations)
-				self:IncHealing(orig_heal,spellInfo.filler,true);
-				
+				self:IncHealing(orig_heal, spellInfo.filler, true)
+
 				--Allocate healing derivatives for each stat
-				if ( not skipAllocate ) then
-					self:Allocate(ev,spellInfo,heal,overhealing,destUnit,f,addon.ply_sp,addon.ply_crt,addon.ply_crtbonus,addon.ply_hst,addon.ply_vrs,addon.ply_mst,nil,addon.ply_lee);
+				if (not skipAllocate) then
+					self:Allocate(
+						ev,
+						spellInfo,
+						heal,
+						overhealing,
+						destUnit,
+						f,
+						addon.ply_sp,
+						addon.ply_crt,
+						addon.ply_crtbonus,
+						addon.ply_hst,
+						addon.ply_vrs,
+						addon.ply_mst,
+						nil,
+						addon.ply_lee
+					)
 				end
 			end
-		elseif ( not spellInfo ) then
-			addon:DiscoverIgnoredSpell(spellID);
+		elseif (not spellInfo) then
+			addon:DiscoverIgnoredSpell(spellID)
 		end
 	end
 end
-
-
 
 --[[----------------------------------------------------------------------------
 	DecompDamageDone
 ------------------------------------------------------------------------------]]
-function StatParser:DecompDamageDone(amt,spellID,critFlag)
-	local f,specId = self:GetParserForCurrentSpec();
-	
-	local spellInfo = addon.Spells:Get(spellID);
-	if ( spellInfo and (spellInfo.spellType == specId or spellInfo.spellType == addon.SpellType.SHARED) ) then
-		if ( f and f.DamageEvent ) then 
-			f.DamageEvent(spellInfo,amt,critFlag);
+function StatParser:DecompDamageDone(amt, spellID, critFlag)
+	local f, specId = self:GetParserForCurrentSpec()
+
+	local spellInfo = addon.Spells:Get(spellID)
+	if (spellInfo and (spellInfo.spellType == specId or spellInfo.spellType == addon.SpellType.SHARED)) then
+		if (f and f.DamageEvent) then
+			f.DamageEvent(spellInfo, amt, critFlag)
 		end
-		
-		self:AllocateDamageLeech("SPELL_DAMAGE",spellInfo,amt,addon.ply_lee);
+
+		self:AllocateDamageLeech("SPELL_DAMAGE", spellInfo, amt, addon.ply_lee)
 	end
 end
-
-
 
 --[[----------------------------------------------------------------------------
 	DecompDamageTaken
 ------------------------------------------------------------------------------]]
-function StatParser:DecompDamageTaken(amt,dontClamp)
-	amt = amt or 0;
-	
+function StatParser:DecompDamageTaken(amt, dontClamp)
+	amt = amt or 0
+
 	if not dontClamp then
-		amt = math.min(UnitHealthMax("Player"),amt);
+		amt = math.min(UnitHealthMax("Player"), amt)
 	end
-	
-	local V = addon.ply_vrs/2;
-	if ( V >= 1 ) then
-		return 0;
+
+	local V = addon.ply_vrs / 2
+	if (V >= 1) then
+		return 0
 	end
-	
-	amt = amt / (1-V) / (addon.VersConv*2);
-	
+
+	amt = amt / (1 - V) / (addon.VersConv * 2)
+
 	--Add derivatives to current & total segments
-	local cur_seg = addon.SegmentManager:Get(0);
-	local ttl_seg = addon.SegmentManager:Get("Total");
-	if ( cur_seg ) then
-		cur_seg:AllocateHealDR(amt);
+	local cur_seg = addon.SegmentManager:Get(0)
+	local ttl_seg = addon.SegmentManager:Get("Total")
+	if (cur_seg) then
+		cur_seg:AllocateHealDR(amt)
 	end
-	if ( ttl_seg ) then
-		ttl_seg:AllocateHealDR(amt);
+	if (ttl_seg) then
+		ttl_seg:AllocateHealDR(amt)
 	end
 end
-
-
 
 --[[----------------------------------------------------------------------------
 	IsCurrentSpecSupported - Check if current spec is supported
 ------------------------------------------------------------------------------]]
 function StatParser:IsCurrentSpecSupported()
-	local f = self:GetParserForCurrentSpec();
-	
-	if ( f ) then
-		return true;
+	local f = self:GetParserForCurrentSpec()
+
+	if (f) then
+		return true
 	else
-		return false;
+		return false
 	end
 end
 
-
-addon.BaseParsers = BaseParsers;
-addon.StatParser = StatParser;
+addon.BaseParsers = BaseParsers
+addon.StatParser = StatParser

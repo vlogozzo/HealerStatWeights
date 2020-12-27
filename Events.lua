@@ -60,7 +60,6 @@ function addon.hsw:PLAYER_ENTERING_WORLD()
 	addon:SetupConversionFactors();
 	addon:SetupFrame();
 	addon:AdjustVisibility();
-	addon:UpdateCorruptionMultipliers();
 	
 	addon.MythicPlusActive = addon:InMythicPlus();
 	if not addon.MythicPlusActive then
@@ -76,17 +75,6 @@ end
 function addon.hsw:COMBAT_RATING_UPDATE()
 	addon:UpdatePlayerStats();
 end
-
-
-
---[[----------------------------------------------------------------------------
-	PLAYER_EQUIPMENT_CHANGED
-------------------------------------------------------------------------------]]
-function addon.hsw:PLAYER_EQUIPMENT_CHANGED()
-	addon:UpdateCorruptionMultipliers();
-end
-
-
 
 --[[----------------------------------------------------------------------------
 	GROUP_ROSTER_UPDATE
@@ -300,7 +288,6 @@ end
 ------------------------------------------------------------------------------]]
 addon.hsw:RegisterEvent("PLAYER_REGEN_DISABLED");
 addon.hsw:RegisterEvent("PLAYER_REGEN_ENABLED");
-addon.hsw:RegisterEvent("PLAYER_EQUIPMENT_CHANGED");
 addon.hsw:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED");
 addon.hsw:RegisterEvent("PLAYER_ENTERING_WORLD");
 addon.hsw:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");

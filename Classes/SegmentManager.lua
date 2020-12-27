@@ -87,7 +87,7 @@ function SegmentManager:Get(i)
 	if ( i == "Total" ) then
 		return self.Total;
 	end
-	
+
 	if ( tonumber(i) and self.segments[self.front - i] ) then
 		return self.segments[self.front-i];
 	end

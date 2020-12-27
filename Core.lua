@@ -1,3 +1,5 @@
+HSW_ENABLE_FOR_TESTING = false
+
 local name,addon = ...;
 local hsw = LibStub("AceAddon-3.0"):NewAddon("HealerStatWeights", "AceConsole-3.0", "AceEvent-3.0")
 local media = LibStub("LibSharedMedia-3.0");
@@ -20,7 +22,6 @@ local hswOptionsFrame;
 local defaults = {
 	global = {
 		excludeRaidHealingCooldowns=false,
-		includeCorruption=true,
 		useHPMoverHPCT=true,
 		autoAssignHasteSetting=true,
 		useVersDR=false,
@@ -82,13 +83,6 @@ local name_label = "Name";
 local region_label = "Region";
 local realm_label = "Realm";
 local specid_label = "SpecID";
-local corruption_hst_label = "Expedient (Haste)";
-local corruption_crt_label = "Severe (Crit)";
-local corruption_vrs_label = "Versatile";
-local corruption_mst_label = "Masterful";
-local corruption_vrs_label_old = "Versatile (Vers)";
-local corruption_mst_label_old = "Masterful (Mastery)";
-local corruption_crtbonus_label = "Strikethrough";
 local talents_label = "Talents";
 local datetime_label = "Date/Time";
 local trinket1_label = "Trinket 1";
@@ -154,13 +148,6 @@ local SegmentLabels = {
 	Region					=	region_label,
 	Realm					=	realm_label,
 	SpecID					=	specid_label,
-	CorruptionHst			=	corruption_hst_label,
-	CorruptionCrt			=	corruption_crt_label,
-	CorruptionVrs			=	corruption_vrs_label,
-	CorruptionVrsOld		=	corruption_vrs_label_old,
-	CorruptionMst			=	corruption_mst_label,
-	CorruptionMstOld		=	corruption_mst_label_old,
-	CorruptionStrikethrough	=	corruption_crtbonus_label,
 	DateTime				= 	datetime_label,
 	Slot13					= 	trinket1_label,
 	Slot14					= 	trinket2_label
@@ -242,15 +229,6 @@ local options = {
 					width = "full",
 					get = function(info) return hsw.db.global.excludeRaidHealingCooldowns end,
 					set = function(info,val) hsw.db.global.excludeRaidHealingCooldowns = val end
-				},
-				includeCorruption = {
-					name = "Include Corruption effects",
-					desc = "When checked, includes Corruption effects such as Severe and Expedient. Is NOT retroactive for past segments. Set this value before starting combat.",
-					type = "toggle",
-					order = 7,
-					width = "full",
-					get = function(info) return hsw.db.global.includeCorruption end,
-					set = function(info,val) hsw.db.global.includeCorruption = val end
 				},
 				headerUI = {
 					name = "UI Settings",
@@ -539,53 +517,10 @@ function addon:BuildOptionsTableForHistorySegment(i)
 	
 
 	--Stat weights
-	local corruptionOptions = {
-		ValueColor = "8787ED",
-		KeyColor = "8787ED",
-		Type="percentint",
-		Width=1.05,
-		FontSize="medium",
-		ValueSuffix="%"
-	};
 	
 	local pctOptions = {
 		Type="integer"
 	};
-
-	OptionsBuilder:AddDivider("Stat Weights");
-	OptionsBuilder:AddKVPair("Int");
-	OptionsBuilder:AddKVPair("Mp5");
-	OptionsBuilder:AddKVPair("CorruptionStrikethrough",corruptionOptions);
-	OptionsBuilder:AddNewLine();
-	OptionsBuilder:AddNewLine();
-	
-	OptionsBuilder:AddKVPair("Crt");
-	if ( h.SpecID == addon.SpellType.SHAMAN ) then
-		OptionsBuilder:AddKVPair("CrtRes");
-	else
-		OptionsBuilder:AddKVPairRaw("","",{Type="string"});
-	end
-	OptionsBuilder:AddKVPair("CorruptionCrt",corruptionOptions);
-	OptionsBuilder:AddNewLine();
-	OptionsBuilder:AddNewLine();
-	
-	OptionsBuilder:AddKVPair("Hst");
-	OptionsBuilder:AddKVPair("HstHPCT");
-	OptionsBuilder:AddKVPair("CorruptionHst",corruptionOptions);
-	OptionsBuilder:AddNewLine();
-	OptionsBuilder:AddNewLine();
-	
-	OptionsBuilder:AddKVPair("Vrs");
-	OptionsBuilder:AddKVPair("VrsDR");
-	OptionsBuilder:AddKVPair("CorruptionVrs",corruptionOptions);
-	OptionsBuilder:AddNewLine();
-	OptionsBuilder:AddNewLine();
-	
-	OptionsBuilder:AddKVPair("Mst");
-	OptionsBuilder:AddKVPair("Lee");
-	OptionsBuilder:AddKVPair("CorruptionMst",corruptionOptions);
-	OptionsBuilder:AddNewLine();
-	OptionsBuilder:AddNewLine();
 
 	--Stats per 1%
 	if ( h.IntPct and h.IntPct>0 ) then
@@ -845,11 +780,6 @@ function addon:AddHistoricalSegment(segment)
 	h.HstPct	 = healingPerOnePercent(segment:GetHaste());
 	h.HstHPCTPct = healingPerOnePercent(segment:GetHasteHPCT());
 
-	h.CorruptionHst = (segment.corruptionUsed and segment.corruptionHasteMult or 1.0) - 1.0;
-	h.CorruptionCrt = (segment.corruptionUsed and segment.corruptionCritMult or 1.0) - 1.0;
-	h.CorruptionVrs = (segment.corruptionUsed and segment.corruptionVersMult or 1.0) - 1.0;
-	h.CorruptionMst = (segment.corruptionUsed and segment.corruptionMasterymult or 1.0) - 1.0;
-	h.CorruptionStrikethrough = segment.corruptionUsed and segment.corruptionCritBonus or 0.0
 	h.Talents = segment.talentsSnapshot and segment.selectedTalents or {};
 	h.SpecID = specId;
 	h.Name=name or "Unknown";

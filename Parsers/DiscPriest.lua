@@ -125,7 +125,6 @@ local function _DamageEvent(spellInfo,amount,critFlag)
 		
 		local data = copy(spellInfo);
 		data.chainCast = nextDamageCastIsChainCast or (spellInfo.spellID == addon.DiscPriest.PenanceCast2);
-		data.intScalar = addon.AzeriteAugmentations:GetAugmentationFactor(spellInfo.spellID,nil);
 		
 		--data.critFlag = critFlag; --this isnt needed since the atonement healing event also includes the critflag
 		nextDamageCastIsChainCast = false;
@@ -309,7 +308,6 @@ function PWSTracker:ApplyOrRefresh(destGUID,amount)
 		if ( addon.DiscPriest.AtonementTracker:UnitHasAtonement(u) ) then
 			self[u].masteryFlag = true;
 		end
-		self[u].intScalar = addon.AzeriteAugmentations:GetAugmentationFactor(addon.DiscPriest.PowerWordShield,u);
 		self[u].SP = addon.ply_sp;
 		self[u].C = addon.ply_crt;
 		self[u].CB = addon.ply_crtbonus;

@@ -60,7 +60,6 @@ local EOLTracker = {};
 local EOLIgnorePercent = {}; --0 means include, 1 means exclude
 local ticks_on_initial_application = 2;
 local ticks_on_refresh = 3;
-local EOLIntAzeriteScalars = {};
 
 local function weighted_avg(stat1,w1,stat2,w2)
 	return (stat1*w1+stat2*w2)/(w1+w2);
@@ -80,12 +79,6 @@ local function hasEcho(unit) --return amount per tick of EoL or nil
 	return false;
 end
 
-function EOLTracker:SetScalar(destUnit,scalar) --scale intellect factor on next EOL application on this target
-	if ( destUnit ) then
-		EOLIntAzeriteScalars[destUnit] = scalar or 1;
-	end
-end
-
 function EOLTracker:SetIgnore(destUnit) --ignore EOL healing from next application on this target.
 	if ( destUnit ) then
 		EOLIgnorePercent[destUnit] = 1;
@@ -95,15 +88,7 @@ end
 function EOLTracker:Apply(destGUID)
 	CheckPOHBuckets();
 	local u = addon.UnitManager:Find(destGUID);
-	if ( u ) then
-		local intScalar;
-		if ( EOLIntAzeriteScalars[u] ) then
-			intScalar = EOLIntAzeriteScalars[u];
-			EOLIntAzeriteScalars[u] = nil;
-		else
-			intScalar = 1;
-		end
-	
+	if ( u ) then	
 		local ignorePercent;
 		if ( EOLIgnorePercent[u] ) then
 			ignorePercent = EOLIgnorePercent[u];
@@ -116,7 +101,7 @@ function EOLTracker:Apply(destGUID)
 		self[u] = {
 			ignore = ignorePercent,
 			current = amount*ticks_on_initial_application,
-			SP = addon.ply_sp * intScalar,
+			SP = addon.ply_sp,
 			C = addon.ply_crt,
 			CB = addon.ply_crtbonus,
 			H = addon.ply_hst,
@@ -130,14 +115,6 @@ function EOLTracker:Refresh(destGUID)
 	CheckPOHBuckets();
 	local u = addon.UnitManager:Find(destGUID);
 	if ( u ) then
-		local intScalar;
-		if ( EOLIntAzeriteScalars[u] ) then
-			intScalar = EOLIntAzeriteScalars[u];
-			EOLIntAzeriteScalars[u] = 1;
-		else
-			intScalar = 1;
-		end
-		
 		local ignorePercent;
 		if ( EOLIgnorePercent[u] ) then
 			ignorePercent = EOLIgnorePercent[u];
@@ -151,7 +128,7 @@ function EOLTracker:Refresh(destGUID)
 			self[u] = {
 				ignore = ignorePercent,
 				current = amount*ticks_on_refresh,
-				SP = addon.ply_sp*intScalar,
+				SP = addon.ply_sp,
 				C = addon.ply_crt,
 				CB = addon.ply_crtbonus,
 				H = addon.ply_hst,
@@ -227,22 +204,13 @@ _HealEvent = function(ev,spellInfo,heal,overhealing,destUnit,f,origHeal,skipBuck
 		end 
 	elseif ( spellInfo.spellID == addon.HolyPriest.PrayerOfHealing ) then
 		if ( not skipBucket ) then
-			local intScalar = addon.AzeriteAugmentations:GetAugmentationFactor(addon.HolyPriest.Azerite.PrayerfulLitanySpell,destUnit);
 			local targetHPPercent = (UnitHealth(destUnit)-heal)/UnitHealthMax(destUnit);
-			table.insert(POHBuckets,{hpPercent=targetHPPercent,scalar=intScalar,ev=ev,spellInfo=spellInfo,heal=heal,overhealing=overhealing,destUnit=destUnit,f=f});
+			table.insert(POHBuckets,{hpPercent=targetHPPercent,scalar=1,ev=ev,spellInfo=spellInfo,heal=heal,overhealing=overhealing,destUnit=destUnit,f=f});
 			return true; --skip for now.
 		else --frombucket
 			addon.StatParser:Allocate(ev,spellInfo,heal,overhealing,destUnit,f,addon.ply_sp,addon.ply_crt,addon.ply_crtbonus,addon.ply_hst,addon.ply_vrs,addon.ply_mst,nil,addon.ply_lee,scalar)
 			EOLTracker:SetScalar(destUnit,scalar);
 		end
-	else
-		--calculate azerite scaling factor for next echo of light application or refresh. 
-		local spellToCheck = spellInfo.spellID;
-		if ( spellToCheck == addon.HolyPriest.Sanctify ) then
-			spellToCheck = addon.HolyPriest.Azerite.BlessedSanctuarySpell;
-		end
-		local echoIntScalar = addon.AzeriteAugmentations:GetAugmentationFactor(spellToCheck,destUnit);
-		EOLTracker:SetScalar(destUnit,echoIntScalar);			
 	end
 	
 	--Handle ignoring contribution from raid healing cooldowns. (Divine Hymn & Salvation)
