@@ -100,6 +100,10 @@ local function _Mastery(ev, spellInfo, heal, destUnit, M)
 			count = math.max(0, count - 1)
 		end
 
+		if (spellInfo.spellID == addon.Druid.Nourish) then
+			count = count * 3
+		end
+
 		return count * heal / (1 + count * M) / addon.MasteryConv
 	end
 	return 0
