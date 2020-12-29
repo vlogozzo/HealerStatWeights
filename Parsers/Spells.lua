@@ -112,6 +112,7 @@ addon.Druid.Renewal = 108238
 addon.Druid.AbundanceBuff = 207383
 addon.Druid.CenarionWardCast = 102351
 addon.Druid.YserasGift = 145109
+addon.Druid.Nourish = 50464
 
 --																I C H H V M L
 createSpellInfo(addon.Druid.Tranquility, SpellType.DRUID, T, T, _, T, T, T, T) --can crit now 7/17/2018
@@ -128,6 +129,7 @@ createSpellInfo(addon.Druid.FrenziedRegen, SpellType.DRUID, _, _, _, T, T, T, _)
 createSpellInfo(addon.Druid.SpringBlossoms, SpellType.DRUID, T, T, T, _, T, T, T)
 createSpellInfo(addon.Druid.Cultivation, SpellType.DRUID, T, T, T, _, T, T, T)
 createSpellInfo(addon.Druid.CenarionWard, SpellType.DRUID, T, T, T, T, T, T, T)
+createSpellInfo(addon.Druid.Nourish, SpellType.DRUID, T, T, T, T, T, T, T)
 createSpellInfo(addon.Druid.Renewal, SpellType.DRUID, _, _, _, T, _, _, _)
 
 createSpellInfo(addon.Druid.CenarionWardCast, SpellType.IGNORED)
