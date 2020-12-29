@@ -561,6 +561,8 @@ addon.Trinket.ObsidianClaw = 313162
 addon.Trinket.RebootingBitBand = 301861
 addon.Trinket.CoagulatedOrb = 314074
 addon.Trinket.VoidShroud = 315763
+--SL
+addon.Trinket.BoonOfTheArchon = 345497
 
 addon.Weapon = {}
 
@@ -595,6 +597,7 @@ createSpellInfo(addon.Trinket.ObsidianClaw, SpellType.SHARED, _, T, T, _, T, _, 
 createSpellInfo(addon.Trinket.RebootingBitBand, SpellType.SHARED, _, T, _, _, T, _, _)
 createSpellInfo(addon.Trinket.CoagulatedOrb, SpellType.SHARED, _, _, T, _, T, _, _)
 createSpellInfo(addon.Trinket.VoidShroud, SpellType.SHARED, _, _, _, _, T, _, _)
+createSpellInfo(addon.Trinket.BoonOfTheArchon, SpellType.SHARED, _, T, _, _, _, _, _)
 
 --Enchants																	I C H H V M L
 createSpellInfo(addon.Enchant.AncientPriestess, SpellType.SHARED, T, T, T, _, T, _, _)
