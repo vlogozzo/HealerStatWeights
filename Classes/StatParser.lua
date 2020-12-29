@@ -214,7 +214,6 @@ end
 
 --Mastery
 local function _Mastery(ev, s, heal, destUnit, M, ME, f)
-	print(M)
 	if (f and f.Mastery) then
 		return f.Mastery(ev, s, heal, destUnit, M, ME)
 	end
