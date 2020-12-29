@@ -85,6 +85,8 @@ end
 	UpdatePlayerStats - Update stats for current player.
 ------------------------------------------------------------------------------]]
 function addon:UpdatePlayerStats()
+	self.IntConv = 1.05
+
 	self.ply_sp = GetSpellBonusDamage(4)
 	self.ply_crt = GetCritChance() / 100
 	self.ply_hst = UnitSpellHaste("Player") / 100
@@ -115,9 +117,7 @@ function addon:UpdatePlayerStats()
 
 	--adjust for intellect multiplier effects
 	if (addon.BuffTracker:Get(addon.ArcaneIntellectId) > 0) then
-		self.IntConv = 1.05 * 1.1
-	else
-		self.IntConv = 1.05
+		self.IntConv = self.IntConv * 1.05
 	end
 
 	if (addon.BuffTracker:Get(addon.CelestialGuidance) > 0) then
