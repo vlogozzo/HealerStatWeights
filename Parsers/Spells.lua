@@ -109,7 +109,7 @@ addon.Druid.SpringBlossoms = 207386
 addon.Druid.Cultivation = 200389
 addon.Druid.CenarionWard = 102352
 addon.Druid.Renewal = 108238
-addon.Druid.AbundanceBuff = 207383
+addon.Druid.AbundanceBuff = 207640
 addon.Druid.CenarionWardCast = 102351
 addon.Druid.YserasGift = 145109
 addon.Druid.Nourish = 50464
@@ -142,9 +142,15 @@ setRaidCooldown(addon.Druid.Tranquility)
 setHasteHpmOnlyOnPeriodic(addon.Druid.Regrowth)
 setHasteHpmOnlyOnPeriodic(addon.Druid.Tranquility)
 
-setFillerSpell(addon.Druid.Regrowth, 0.028, RegrowthAbundanceManaCostMultiplier)
-setFillerSpell(addon.Druid.Rejuvenation, 0.021)
-setFillerSpell(addon.Druid.Germination, 0.021)
+setFillerSpell(
+	addon.Druid.Regrowth,
+	0.034,
+	function()
+		return 1 - (0.06 * addon.BuffTracker:Get(addon.Druid.AbundanceBuff))
+	end
+)
+setFillerSpell(addon.Druid.Rejuvenation, 0.022)
+setFillerSpell(addon.Druid.Germination, 0.022)
 
 --[[----------------------------------------------------------------------------
 	Resto Shaman
