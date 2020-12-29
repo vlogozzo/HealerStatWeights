@@ -58,7 +58,7 @@ function addon:SetupConversionFactors()
 	local mastery_factor = 1
 
 	if (self:IsRestoDruid()) then
-		mastery_factor = 20 / 11
+		mastery_factor = 2
 	elseif (self:IsRestoShaman()) then
 		mastery_factor = 1 / 3
 	elseif (self:IsHolyPriest()) then
