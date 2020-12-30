@@ -53,7 +53,7 @@ local mna_cnv = {
 }
 
 function addon:SetupConversionFactors()
-	addon.IntConv = 1.05 --int to SP conversion factor
+	addon.IntConv = 1 --int to SP conversion factor
 
 	local mastery_factor = 1
 
@@ -85,7 +85,7 @@ end
 	UpdatePlayerStats - Update stats for current player.
 ------------------------------------------------------------------------------]]
 function addon:UpdatePlayerStats()
-	self.IntConv = 1.05
+	self.IntConv = 1
 
 	self.ply_sp = GetSpellBonusDamage(4)
 	self.ply_crt = GetCritChance() / 100
