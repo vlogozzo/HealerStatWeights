@@ -4,6 +4,7 @@ local name, addon = ...
 	Stat conversion factors (data taken from simc)
 	https://github.com/simulationcraft/simc/blob/shadowlands/engine/dbc/generated/sc_scale_data.inc
 ------------------------------------------------------------------------------]]
+local int_to_sp = 1
 local crt_cnv = 35.00000009
 local hst_cnv = 33.00000009
 local vrs_cnv = 40.0000001
@@ -12,7 +13,6 @@ local lee_cnv = 21.00000006
 local mna_cnv = 50000
 
 function addon:SetupConversionFactors()
-	addon.IntConv = 1 --int to SP conversion factor
 	local _, mastery_factor = GetMasteryEffect()
 
 	addon.CritConv = crt_cnv * 100
@@ -27,7 +27,7 @@ end
 	UpdatePlayerStats - Update stats for current player.
 ------------------------------------------------------------------------------]]
 function addon:UpdatePlayerStats()
-	self.IntConv = 1
+	self.IntConv = int_to_sp
 
 	self.ply_sp = GetSpellBonusDamage(4)
 	self.ply_crt = GetCritChance() / 100
