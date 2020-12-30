@@ -2,90 +2,32 @@ local name, addon = ...
 
 --[[----------------------------------------------------------------------------
 	Stat conversion factors (data taken from simc)
-	https://github.com/simulationcraft/simc/blob/bfa-dev/engine/dbc/generated/sc_scale_data.inc
+	https://github.com/simulationcraft/simc/blob/shadowlands/engine/dbc/generated/sc_scale_data.inc
 ------------------------------------------------------------------------------]]
-local hst_cnv = {
-	18.22129252,
-	20.11723583,
-	22.21045389,
-	24.52147334,
-	33.00000009
-}
-
-local crt_cnv = {
-	19.32561328,
-	21.33646224,
-	23.55654201,
-	26.00762324,
-	35.00000009
-}
-
-local mst_cnv = {
-	19.32561328,
-	21.33646224,
-	23.55654201,
-	26.00762324,
-	35.00000009
-}
-
-local vrs_cnv = {
-	22.08641518,
-	24.38452828,
-	26.92176229,
-	29.72299799,
-	40.0000001
-}
-
-local lee_cnv = {
-	11.59536797,
-	12.80187735,
-	14.1339252,
-	15.60457394,
-	21.00000006
-}
-
-local mna_cnv = {
-	5253,
-	6170,
-	7247,
-	8513,
-	10000
-}
+local int_to_sp = 1
+local crt_cnv = 35.00000009
+local hst_cnv = 33.00000009
+local vrs_cnv = 40.0000001
+local mst_cnv = 35.00000009
+local lee_cnv = 21.00000006
+local mna_cnv = 50000
 
 function addon:SetupConversionFactors()
-	addon.IntConv = 1 --int to SP conversion factor
+	local _, mastery_factor = GetMasteryEffect()
 
-	local mastery_factor = 1
-
-	if (self:IsRestoDruid()) then
-		mastery_factor = 2
-	elseif (self:IsRestoShaman()) then
-		mastery_factor = 1 / 3
-	elseif (self:IsHolyPriest()) then
-		mastery_factor = 4 / 5
-	elseif (self:IsHolyPaladin()) then
-		mastery_factor = 2 / 3
-	elseif (self:IsMistweaverMonk()) then
-		mastery_factor = 1 / 3
-	elseif (self:IsDiscPriest()) then
-		mastery_factor = 5 / 6
-	end
-
-	local level = UnitLevel("Player")
-	level = math.max(level, 56)
-	addon.CritConv = crt_cnv[level - 56 + 1] * 100
-	addon.HasteConv = hst_cnv[level - 56 + 1] * 100
-	addon.VersConv = vrs_cnv[level - 56 + 1] * 100
-	addon.MasteryConv = mst_cnv[level - 56 + 1] * 100 * mastery_factor
-	addon.LeechConv = lee_cnv[level - 56 + 1] * 100
-	addon.ManaPool = mna_cnv[level - 56 + 1] * 5
+	addon.CritConv = crt_cnv * 100
+	addon.HasteConv = hst_cnv * 100
+	addon.VersConv = vrs_cnv * 100
+	addon.MasteryConv = mst_cnv / mastery_factor * 100
+	addon.LeechConv = lee_cnv * 100
+	addon.ManaPool = mna_cnv
 end
 
 --[[----------------------------------------------------------------------------
 	UpdatePlayerStats - Update stats for current player.
 ------------------------------------------------------------------------------]]
 function addon:UpdatePlayerStats()
-	self.IntConv = 1
+	self.IntConv = int_to_sp
 
 	self.ply_sp = GetSpellBonusDamage(4)
 	self.ply_crt = GetCritChance() / 100
