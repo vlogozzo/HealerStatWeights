@@ -54,29 +54,14 @@ local mna_cnv = {
 
 function addon:SetupConversionFactors()
 	addon.IntConv = 1 --int to SP conversion factor
-
-	local mastery_factor = 1
-
-	if (self:IsRestoDruid()) then
-		mastery_factor = 2
-	elseif (self:IsRestoShaman()) then
-		mastery_factor = 1 / 3
-	elseif (self:IsHolyPriest()) then
-		mastery_factor = 4 / 5
-	elseif (self:IsHolyPaladin()) then
-		mastery_factor = 2 / 3
-	elseif (self:IsMistweaverMonk()) then
-		mastery_factor = 1 / 3
-	elseif (self:IsDiscPriest()) then
-		mastery_factor = 5 / 6
-	end
+	local _, mastery_factor = GetMasteryEffect()
 
 	local level = UnitLevel("Player")
 	level = math.max(level, 56)
 	addon.CritConv = crt_cnv[level - 56 + 1] * 100
 	addon.HasteConv = hst_cnv[level - 56 + 1] * 100
 	addon.VersConv = vrs_cnv[level - 56 + 1] * 100
-	addon.MasteryConv = mst_cnv[level - 56 + 1] * 100 * mastery_factor
+	addon.MasteryConv = mst_cnv[level - 56 + 1] / mastery_factor * 100
 	addon.LeechConv = lee_cnv[level - 56 + 1] * 100
 	addon.ManaPool = mna_cnv[level - 56 + 1] * 5
 end
