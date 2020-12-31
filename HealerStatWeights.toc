@@ -1,7 +1,7 @@
 ## Interface: 90002
 ## Title: Healer Stat Weights
 ## Author: Bastas#6681 (discord)
-## Version: 2.0.0
+## Version: 2.0.1
 ## Notes: Computes statweights for healers in real-time! This is the addon extension of the RDSW weakaura for resto druids, extended for all healing specs! Originally by Manaleaf; and updated by Voulk.
 ## DefaultState: Enabled
 ## SavedVariables: HSW_DB 
