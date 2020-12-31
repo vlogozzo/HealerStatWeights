@@ -36,8 +36,7 @@ function CastTracker:StartCast(unit, n)
 
 	local _, _, _, startTimeMS, endTimeMS, _, _, _, spellID = UnitCastingInfo("player")
 
-	local spellInfo = addon.Spells:Get(spellID)
-	if (not spellInfo) then
+	if not addon.Spells:Get(spellID) then
 		return
 	end
 
