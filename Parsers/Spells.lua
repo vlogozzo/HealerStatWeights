@@ -308,12 +308,9 @@ addon.Paladin.HolyLight = 82326
 addon.Paladin.HolyShock = 25914
 addon.Paladin.LightOfDawn = 225311
 addon.Paladin.HolyPrism = 114871
-addon.Paladin.TyrsDeliverance = 200654
 addon.Paladin.ArcingLight = 119952
 addon.Paladin.FlashOfLight = 19750
 addon.Paladin.LightOfTheMartyr = 183998
-addon.Paladin.AuraOfMercy = 210291
-addon.Paladin.AuraOfSacrifice = 210383
 addon.Paladin.JudgementOfLight = 183811
 addon.Paladin.BeaconOfLight = 53652
 addon.Paladin.LayOnHands = 633
@@ -327,15 +324,12 @@ addon.Paladin.InfusionOfLight = 54149
 
 --																	I C H H V M L
 createSpellInfo(addon.Paladin.BeaconOfLight, SpellType.PALADIN, T, T, _, T, T, T, _)
-createSpellInfo(addon.Paladin.AuraOfSacrifice, SpellType.PALADIN, T, T, _, T, T, T, T)
-createSpellInfo(addon.Paladin.AuraOfMercy, SpellType.PALADIN, T, T, _, T, T, _, T)
 createSpellInfo(addon.Paladin.JudgementOfLight, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.BestowFaith, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.HolyLight, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.HolyShock, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.LightOfDawn, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.HolyPrism, SpellType.PALADIN, T, T, _, T, T, T, T)
-createSpellInfo(addon.Paladin.TyrsDeliverance, SpellType.PALADIN, T, T, T, T, T, T, T)
 createSpellInfo(addon.Paladin.ArcingLight, SpellType.PALADIN, T, T, T, T, T, T, T)
 createSpellInfo(addon.Paladin.FlashOfLight, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.LightOfTheMartyr, SpellType.PALADIN, T, T, _, T, T, T, T)
@@ -356,11 +350,9 @@ setTransfersToBeacon(addon.Paladin.HolyLight)
 setTransfersToBeacon(addon.Paladin.HolyShock)
 setTransfersToBeacon(addon.Paladin.LightOfDawn)
 setTransfersToBeacon(addon.Paladin.HolyPrism)
-setTransfersToBeacon(addon.Paladin.TyrsDeliverance)
 setTransfersToBeacon(addon.Paladin.ArcingLight)
 setTransfersToBeacon(addon.Paladin.FlashOfLight)
 setTransfersToBeacon(addon.Paladin.LightOfTheMartyr)
-setRaidCooldown(addon.Paladin.AuraOfMercy)
 
 setFillerSpell(addon.Paladin.HolyLight, 0.026)
 setFillerSpell(addon.Paladin.FlashOfLight, 0.044)

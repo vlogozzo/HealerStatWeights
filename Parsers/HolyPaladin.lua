@@ -31,14 +31,10 @@ addon.SpecInfo[addon.SpellType.PALADIN] = {
 --[[----------------------------------------------------------------------------
 	Buff Tracking
 ------------------------------------------------------------------------------]]
-local vindicator = 200376
 local avengingWrath = 31842
 local ruleOfLaw = 214202
-local purityOfLight = 254332
 
-addon.BuffTracker:Track(purityOfLight)
 addon.BuffTracker:Track(ruleOfLaw) --ruleOfLaw
-addon.BuffTracker:Track(vindicator) --vindicator (+25% CE)
 addon.BuffTracker:Track(avengingWrath) --avenging wrath (+30% crit)
 
 --[[----------------------------------------------------------------------------
@@ -96,23 +92,7 @@ end
 	Holy Paladin Critical Strike
 ------------------------------------------------------------------------------]]
 local function _CriticalStrike(ev, spellInfo, heal, destUnit, C, CB)
-	--vindicator
-	if (addon.BuffTracker:Get(vindicator) > 0) then
-		CB = CB * 1.25
-	end
-
-	--t21 4p
-	if (addon.BuffTracker:Get(purityOfLight) > 0) then
-		if
-			(spellInfo.spellID == addon.Paladin.HolyLight or spellInfo.spellID == addon.Paladin.LightOfDawn or
-				spellInfo.spellID == addon.Paladin.FlashOfLight)
-		 then
-			CB = CB * 2
-		end
-	end
-
 	C = _GetCritChance(C, spellInfo.spellID)
-
 	return addon.BaseParsers.CriticalStrike(ev, spellInfo, heal, destUnit, C, CB, nil)
 end
 
