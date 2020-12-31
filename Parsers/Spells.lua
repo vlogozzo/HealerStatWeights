@@ -307,6 +307,7 @@ addon.Paladin.BestowFaith = 223306
 addon.Paladin.HolyLight = 82326
 addon.Paladin.HolyShock = 25914
 addon.Paladin.LightOfDawn = 225311
+addon.Paladin.WordOfGlory = 85673
 addon.Paladin.HolyPrism = 114871
 addon.Paladin.ArcingLight = 119952
 addon.Paladin.FlashOfLight = 19750
@@ -329,6 +330,7 @@ createSpellInfo(addon.Paladin.BestowFaith, SpellType.PALADIN, T, T, _, T, T, T, 
 createSpellInfo(addon.Paladin.HolyLight, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.HolyShock, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.LightOfDawn, SpellType.PALADIN, T, T, _, T, T, T, T)
+createSpellInfo(addon.Paladin.WordOfGlory, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.HolyPrism, SpellType.PALADIN, T, T, _, T, T, T, T)
 createSpellInfo(addon.Paladin.ArcingLight, SpellType.PALADIN, T, T, T, T, T, T, T)
 createSpellInfo(addon.Paladin.FlashOfLight, SpellType.PALADIN, T, T, _, T, T, T, T)
@@ -349,6 +351,7 @@ setTransfersToBeacon(addon.Paladin.BestowFaith)
 setTransfersToBeacon(addon.Paladin.HolyLight)
 setTransfersToBeacon(addon.Paladin.HolyShock)
 setTransfersToBeacon(addon.Paladin.LightOfDawn)
+setTransfersToBeacon(addon.Paladin.WordOfGlory)
 setTransfersToBeacon(addon.Paladin.HolyPrism)
 setTransfersToBeacon(addon.Paladin.ArcingLight)
 setTransfersToBeacon(addon.Paladin.FlashOfLight)
