@@ -3,6 +3,17 @@ local T = true
 local F = false
 local _ = false
 
+local function baseManaCostConversion(costPerc)
+	if not costPerc then
+		error("baseManaCostConversion() called without parameters")
+		return
+	else
+		local baseMana = 10000
+		local healerMana = baseMana * 5
+		return baseMana * costPerc / healerMana
+	end
+end
+
 --[[----------------------------------------------------------------------------
 	SpellType - Enumeration of specialization ids for each healing spec;
 				and a "Shared" type for spells used by all healing specializations (Trinkets, etc.)
@@ -65,7 +76,7 @@ end
 
 local function setFillerSpell(id, manaCost, f_multiplier)
 	Spells[id].filler = true
-	Spells[id].manaCost = manaCost
+	Spells[id].manaCost = baseManaCostConversion(manaCost)
 	Spells[id].manaCostAdjustmentMultiplier = f_multiplier
 end
 
@@ -144,13 +155,13 @@ setHasteHpmOnlyOnPeriodic(addon.Druid.Tranquility)
 
 setFillerSpell(
 	addon.Druid.Regrowth,
-	0.034,
+	0.17,
 	function()
 		return 1 - (0.06 * addon.BuffTracker:Get(addon.Druid.AbundanceBuff))
 	end
 )
-setFillerSpell(addon.Druid.Rejuvenation, 0.022)
-setFillerSpell(addon.Druid.Germination, 0.022)
+setFillerSpell(addon.Druid.Rejuvenation, 0.11)
+setFillerSpell(addon.Druid.Germination, 0.11)
 
 --[[----------------------------------------------------------------------------
 	Resto Shaman
@@ -230,9 +241,9 @@ addon.BuffTracker:Track(addon.Shaman.TidalWavesBuff)
 
 setHasteHpmOnlyOnPeriodic(addon.Shaman.Riptide)
 
-setFillerSpell(addon.Shaman.HealingWave, 0.018)
-setFillerSpell(addon.Shaman.HealingSurge, 0.04)
-setFillerSpell(addon.Shaman.ChainHeal, 0.05)
+setFillerSpell(addon.Shaman.HealingWave, 0.15)
+setFillerSpell(addon.Shaman.HealingSurge, 0.24)
+setFillerSpell(addon.Shaman.ChainHeal, 0.3)
 
 --[[----------------------------------------------------------------------------
 	Holy Priest
@@ -294,10 +305,10 @@ setRaidCooldown(addon.HolyPriest.Salvation)
 
 setHasteHpmOnlyOnPeriodic(addon.HolyPriest.Renew)
 
-setFillerSpell(addon.HolyPriest.Heal, 0.017)
-setFillerSpell(addon.HolyPriest.BindingHeal, 0.017)
-setFillerSpell(addon.HolyPriest.FlashHeal, 0.028)
-setFillerSpell(addon.HolyPriest.PrayerOfHealing, 0.045)
+setFillerSpell(addon.HolyPriest.Heal, 0.024)
+setFillerSpell(addon.HolyPriest.BindingHeal, 0.034)
+setFillerSpell(addon.HolyPriest.FlashHeal, 0.036)
+setFillerSpell(addon.HolyPriest.PrayerOfHealing, 0.05)
 
 --[[----------------------------------------------------------------------------
 	Holy Paladin
@@ -354,9 +365,9 @@ setTransfersToBeacon(addon.Paladin.ArcingLight)
 setTransfersToBeacon(addon.Paladin.FlashOfLight)
 setTransfersToBeacon(addon.Paladin.LightOfTheMartyr)
 
-setFillerSpell(addon.Paladin.HolyLight, 0.026)
-setFillerSpell(addon.Paladin.FlashOfLight, 0.044)
-setFillerSpell(addon.Paladin.LightOfTheMartyr, 0.014)
+setFillerSpell(addon.Paladin.HolyLight, 0.15)
+setFillerSpell(addon.Paladin.FlashOfLight, 0.22)
+setFillerSpell(addon.Paladin.LightOfTheMartyr, 0.07)
 
 addon.BuffTracker:Track(addon.Paladin.HolyAvenger)
 addon.BuffTracker:Track(addon.Paladin.InfusionOfLight)
@@ -457,9 +468,9 @@ local function LifeCyclesEnvelopingMistManaCostMultiplier()
 	return 1.0
 end
 
-setFillerSpell(addon.Monk.Vivify, 0.035, LifeCyclesVivifyManaCostMultiplier)
-setFillerSpell(addon.Monk.EnvelopingMist, 0.052, LifeCyclesEnvelopingMistManaCostMultiplier)
-setFillerSpell(addon.Monk.RenewingMist, 0.028)
+setFillerSpell(addon.Monk.Vivify, 0.041, LifeCyclesVivifyManaCostMultiplier)
+setFillerSpell(addon.Monk.EnvelopingMist, 0.06, LifeCyclesEnvelopingMistManaCostMultiplier)
+setFillerSpell(addon.Monk.RenewingMist, 0.022)
 setFillerSpell(addon.Monk.GustOfMists, 0)
 
 --[[----------------------------------------------------------------------------
@@ -537,7 +548,7 @@ setTransfersToAtonement(addon.DiscPriest.HaloDamage, 5.0)
 setTransfersToAtonement(addon.DiscPriest.DivineStarDamage, 5.0)
 setTransfersToAtonement(addon.DiscPriest.HolyNovaDamage, 0.5)
 
-setFillerSpell(addon.DiscPriest.PowerWordShield, 0.025)
+setFillerSpell(addon.DiscPriest.PowerWordShield, 0.031)
 
 --[[----------------------------------------------------------------------------
 	Shared Spells
